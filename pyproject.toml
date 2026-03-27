@@ -27,3 +27,8 @@ name = "ytdlp-tray"
 onefile = true
 windowed = true
 icon = "assets/icon.ico"
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.19.0",
+]

@@ -60,7 +60,7 @@ uv run ytdlp-tray
 ## Build single `.exe`
 
 ```powershell
-.\build.ps1
+PowerShell -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
 Output: `dist\ytdlp-tray.exe`

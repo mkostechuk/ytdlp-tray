@@ -217,6 +217,7 @@ def _run_ytdlp(url: str) -> None:
             encoding="utf-8",
             errors="replace",
             env=env,
+            creationflags=subprocess.CREATE_NO_WINDOW,
         )
 
         last_progress_log = 0.0

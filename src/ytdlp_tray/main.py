@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import os
+import shlex
 import subprocess
 import sys
 import threading
@@ -43,49 +44,58 @@ BASE_DIR = _base_dir()
 LOG_FILE = BASE_DIR / "ytdlp-tray.log"
 
 
-def _resolve_download_dir() -> Path:
-    """Resolve download directory:
-    1. config.yaml next to the exe/script with a download_path key
+def _load_config() -> tuple[Path, list[str]]:
+    """Load config.yaml and return (download_dir, ytdlp_extra_options).
+
+    Resolution order for download_dir:
+    1. config.yaml download_path key
     2. Windows shell folder from registry via PowerShell
     3. ~/Downloads as last resort
     """
-    # 1. config.yaml
+    download_dir: Path | None = None
+    extra_options: list[str] = []
+
     config_path = BASE_DIR / "config.yaml"
     if config_path.exists():
         try:
             with open(config_path, encoding="utf-8") as f:
                 cfg = yaml.safe_load(f) or {}
             if "download_path" in cfg:
-                return Path(cfg["download_path"])
+                download_dir = Path(cfg["download_path"])
+            if "ytdlp_options" in cfg:
+                raw = cfg["ytdlp_options"]
+                if isinstance(raw, list):
+                    extra_options = [str(o) for o in raw]
         except Exception as exc:
-            # Logged after logger is set up — store for deferred logging
-            _config_warning = str(exc)
+            print(f"Warning: could not read config.yaml: {exc}", flush=True)
 
-    # 2. Windows registry via PowerShell
-    ps_cmd = (
-        r'(Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion'
-        r'\Explorer\Shell Folders" '
-        r'-Name "{374DE290-123F-4565-9164-39C4925E467B}")'
-        r'."{374DE290-123F-4565-9164-39C4925E467B}"'
-    )
-    try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps_cmd],
-            capture_output=True,
-            text=True,
-            timeout=5,
+    if download_dir is None:
+        ps_cmd = (
+            r'(Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion'
+            r'\Explorer\Shell Folders" '
+            r'-Name "{374DE290-123F-4565-9164-39C4925E467B}")'
+            r'".{374DE290-123F-4565-9164-39C4925E467B}"'
         )
-        path_str = result.stdout.strip()
-        if path_str:
-            return Path(path_str)
-    except Exception:
-        pass
+        try:
+            result = subprocess.run(
+                ["powershell", "-NoProfile", "-Command", ps_cmd],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            path_str = result.stdout.strip()
+            if path_str:
+                download_dir = Path(path_str)
+        except Exception:
+            pass
 
-    # 3. Fallback
-    return Path.home() / "Downloads"
+    if download_dir is None:
+        download_dir = Path.home() / "Downloads"
+
+    return download_dir, extra_options
 
 
-DOWNLOAD_DIR = _resolve_download_dir()
+DOWNLOAD_DIR, YTDLP_OPTIONS = _load_config()
 YTDLP_PATH = str(BASE_DIR / "yt-dlp.exe")
 
 PORT = 9876
@@ -190,6 +200,12 @@ def status():
 
 def _run_ytdlp(url: str) -> None:
     output_template = str(DOWNLOAD_DIR / "%(title)s.%(ext)s")
+    # Parse each option string into individual tokens so flags like
+    # '-S "res:1080"' are passed correctly as separate argv entries
+    extra: list[str] = []
+    for opt in YTDLP_OPTIONS:
+        extra.extend(shlex.split(opt))
+
     cmd = [
         YTDLP_PATH,
         "--cookies-from-browser",
@@ -199,6 +215,7 @@ def _run_ytdlp(url: str) -> None:
         "utf-8",  # force UTF-8 output (fixes Cyrillic/CJK on Windows)
         "--merge-output-format",
         "mp4",
+        *extra,
         "-o",
         output_template,
         url,
@@ -309,6 +326,7 @@ def _run_flask(stop_event: Event) -> None:
 
     log.info("Flask server starting on http://127.0.0.1:%d", PORT)
     log.info("Download directory: %s", DOWNLOAD_DIR)
+    log.info("Extra yt-dlp options: %s", YTDLP_OPTIONS or "(none)")
     log.info("Log file: %s", LOG_FILE)
 
     # Use werkzeug's make_server so we can shut it down cleanly

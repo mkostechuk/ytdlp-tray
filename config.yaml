@@ -1,2 +1,6 @@
 # Use this to override the download path
 #download_path: 'D:\Downloads\'
+# Use this to provide extra options to yt-dlp call
+#ytdlp_options:
+#  - '-S "res:1080"'
+#  - '-f "bestvideo*+bestaudio/best"'

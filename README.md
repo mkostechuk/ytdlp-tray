@@ -87,7 +87,7 @@ The button changes state as the download progresses:
 
 | State | Appearance |
 |-------|-----------|
-| Idle | ⬇ white |
+| Idle | ⬇ blue |
 | Downloading | `47%` pale yellow |
 | Done | ✔ green (stays until you navigate away) |
 | Error | ✘ dark red |

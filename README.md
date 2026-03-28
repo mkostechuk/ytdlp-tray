@@ -100,14 +100,29 @@ The button changes state as the download progresses:
 
 Create `config.yaml` next to `ytdlp-tray.exe`.
 
-The only configuration option it allows to change for now is the download path:
+#### 1. Download path
 
 ```yaml
 download_path: 'D:\Downloads'
 ```
+Resolution order for download directory:
+1. `download_path` key from the config
+2. Windows shell folder from registry via PowerShell
+3. `~/Downloads` as last resort
 
-If `config.yaml` is absent or `download_path` is not set, the app reads
-the system Downloads folder from the Windows registry automatically.
+#### 2. yt-dlp extra options
+
+You can add some extra options for the yt-dlp call.
+
+_These options are passed to yt-dlp as-is and you need to refer to its documentation to see the complete list of options._
+
+```yaml
+ytdlp_options:
+  - '-S "res:1080"'
+  - '-f "bestvideo*+bestaudio/best"'
+```
+ For example if you want to limit the resolution of the downloaded videos to 1080p, you can use the 2 options above.
+
 
 ---
 

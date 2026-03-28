@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         YouTube yt-dlp Downloader
 // @namespace    http://tampermonkey.net/
-// @version      2.1
+// @version      2.2
 // @description  Adds a Download button to YouTube video & Shorts pages calling a local yt-dlp API
 // @author       miko
 // @match        https://www.youtube.com/*
+// @downloadURL  https://github.com/mkostechuk/ytdlp-tray/raw/refs/heads/master/youtube_downloader.user.js
+// @updateURL    https://github.com/mkostechuk/ytdlp-tray/raw/refs/heads/master/youtube_downloader.user.js
 // @grant        GM_xmlhttpRequest
 // @connect      localhost
 // @run-at       document-idle

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube yt-dlp Downloader
 // @namespace    http://tampermonkey.net/
-// @version      2.0
+// @version      2.1
 // @description  Adds a Download button to YouTube video & Shorts pages calling a local yt-dlp API
 // @author       miko
 // @match        https://www.youtube.com/*
@@ -37,8 +37,8 @@
         btn.style.cssText = BASE + `background:${bg};color:${color};font-size:${fontSize};` + sizeStyle(btn._isShorts);
     }
 
-    function setIdle(btn)         { btn.textContent = '⬇';       applyStyle(btn, '#ffffff', '#000000', '20px'); btn.disabled = false; }
-    function setProgress(btn, pct){ btn.textContent = `${pct}%`;     applyStyle(btn, '#c8a800', '#333', '13px'); btn.disabled = true;  }
+    function setIdle(btn)         { btn.textContent = '⬇';       applyStyle(btn, '#0388fc', '#000', '20px'); btn.disabled = false; }
+    function setProgress(btn, pct){ btn.textContent = `${pct}%`; applyStyle(btn, '#c8a800', '#333', '13px'); btn.disabled = true;  }
     function setDone(btn)         { btn.textContent = '✔';       applyStyle(btn, '#1a8a1a', '#fff', '20px'); btn.disabled = false; }
     function setError(btn)        { btn.textContent = '✘';       applyStyle(btn, '#b00020', '#fff', '20px'); btn.disabled = false; }
 
